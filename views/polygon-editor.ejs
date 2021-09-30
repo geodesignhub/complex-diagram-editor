@@ -119,14 +119,24 @@
     <script type="text/javascript">
         var svgDrawing = SVG('drawing').size(10, 10);
 
+        let segment_editing_enbaled = false;
+        let all_segments = [];
         function toggleEdit() {
-            if (segmentEditor.enabled()) {
-                segmentEditor.disable();
+            let segment_lengths = all_segments.length;
+            if (segment_editing_enbaled) {
+                let segment_lengths = all_segments.length;
+                for (var x = 0; x< segment_lengths; x++){
+                    all_segments[x].disable();
+                }
+                segment_editing_enbaled = false;
                 let edited_geo_json = diagramLayer.toGeoJSON();
                 loadOutputBuffer(edited_geo_json, true);
                 $("#toggle-btn").html('Edit diagram');
             } else {
-                segmentEditor.enable();
+                for (var x = 0; x< segment_lengths; x++){
+                    all_segments[x].enable();
+                }
+                segment_editing_enbaled = true;
                 $("#toggle-btn").html('Preview');
             }
         }
@@ -266,11 +276,11 @@
                 segmentSize: 350,
                 style: {
                     default: {
-                        weight: 3,
-                        color: 'white'
+                        weight: 1,
+                        color: 'tomato'
                     },
                     hover: {
-                        weight: 5,
+                        weight: 3,
                         color: 'black'
                     },
                     editing: {
@@ -279,9 +289,14 @@
                     }
                 }
             };
-            var poly = diagramLayer.getLayers()[0];
-            segmentEditor = new L.Edit.PolySegmentEditing(inputmap, poly, edit_options);
-            segmentEditor.enable();
+            diagramLayer.eachLayer(function(layer){
+                    let segmentEditor = new L.Edit.PolySegmentEditing(inputmap, layer, edit_options);
+                    segmentEditor.enable();
+                    all_segments.push(segmentEditor);
+                    segment_editing_enbaled = true;
+                });
+
+
             inputmap.fitBounds(inputLayer.getBounds());
 
             var outputmap = L.map('outputmap', {
