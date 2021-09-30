@@ -1,0 +1,387 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <title>Geodesignhub Large Diagram Editor</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <meta name="Description" lang="en" content="Geodesignhub Diagrams Builder">
+    <meta name="author" content="Hrishikesh Ballal">
+    <meta name="robots" content="index, follow">
+    <!-- icons -->
+    <link rel="shortcut icon" href="favicon.ico">
+    <!-- Bootstrap Core CSS file -->
+    <link rel="stylesheet" href="assets/css/bootstrap.min.css">
+    <!-- Override CSS file - add your own CSS rules -->
+    <link rel="stylesheet" href="assets/css/styles.css">
+    <link rel="stylesheet" href="assets/css/ion.rangeSlider.css">
+    <link rel="stylesheet" href="assets/css/ion.rangeSlider.skinFlat.css">
+    <link rel="stylesheet" type="text/css" href="assets/css/flatty.css" />
+    <link rel="stylesheet" type="text/css" href="assets/css/leaflet.css" />
+    <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
+    <!-- Conditional comment containing JS files for IE6 - 8 -->
+    <!--[if lt IE 9]>
+            <script src="assets/js/html5.js"></script>
+            <script src="assets/js/respond.min.js"></script>
+        <![endif]-->
+</head>
+
+<body>
+    <header>
+        <!-- Fixed navbar -->
+        <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
+            <div class="container-fluid">
+                <a class="navbar-brand" href="#">Geodesignhub Large Diagram Editor</a>
+            </div>
+        </nav>
+
+        </nav>
+    </header>
+    <div class="container-fluid">
+        <!-- /.row -->
+        <br>
+
+        <div class="row">
+
+            <div class="col-md-6">
+                <h3>Input Diagram</h3>
+                <div id="inputmap"></div>
+                <h4 id="diagName"> </h4>
+            </div>
+            <div class="col-md-6">
+                <h3>Output Diagram</h3>
+                <div id="outputmap"></div>
+            </div>
+        </div>
+        <br>
+        
+        <div class="row">
+            <div class="col-md-6">
+                <button id="toggle-btn" class="btn btn-primary" onclick="toggleEdit()">
+                    <span>Preview / Toggle</span>
+                </button>
+                
+            </div>
+            <div class="col-md-6">
+            </div>
+        </div>
+        <br>
+        <hr>
+        <div class="row">
+            <div class="col-md-12">
+                <h3>Add edits as a new diagram</h3><br>
+                <div id="systemsCB"></div><br>
+                <label>Upload as Project or Policy</label>
+                <p><label class="radio-inline"><input type="radio" name="projorpol" value="project"> Project</label>
+                    <label class="radio-inline"><input type="radio" name="projorpol" value="policy"> Policy</label>
+                </p><br>
+
+                <label>Give the Diagram a name</label>
+                <ul class="input-list style-2 clearfix">
+                    <li>
+                        <input type="text" id="newDiagName" placeholder="e.g. smaller urban areas of URB 6">
+                    </li>
+                </ul>
+                <br>
+                <button id="addDiagram" type="button" class="btn btn-success"><i
+                        class="glyphicon glyphicon-plus-sign"></i> Add as new Diagram </button>
+            </div>
+        </div>
+        <!-- /.col-md-4 -->
+
+        <!-- /.row -->
+        <br><br><br><br>
+        <hr>
+
+        <footer class="text-muted">
+            <p>Geodesignhub Buffer Helper, &copy; 2021 <a href="https://www.geodesignhub.com/">Geodesignhub</a>, see the
+                <a href="https://github.com/geodesignhub/large-diagram-editor">GitHub repository</a> for more information.</p>
+        </footer>
+        <div id="drawing"></div>
+    </div>
+    <!-- /.container-fluid -->
+    <!-- JQuery scripts -->
+    <script type="text/javascript" src="assets/js/jquery.min.js"></script>
+    <script type="text/javascript" src="assets/js/humane.min.js"></script>
+    <script type="text/javascript" src="assets/js/svg.min.js"></script>
+    <!-- Bootstrap Core scripts -->
+    <script type="text/javascript" src="assets/js/ion.rangeSlider.min.js"></script>
+    <script type="text/javascript" src="assets/js/bootstrap.bundle.min.js"></script>
+    <script type="text/javascript" src="assets/js/colors.js"></script>
+    <script type="text/javascript" src="assets/js/leaflet.js"></script>
+    <script type="text/javascript" src="assets/js/leaflet.draw.js"></script>
+    <script type="text/javascript" src="assets/js/leaflet.segmentedit.min.js"></script>
+
+    <script type="text/javascript">
+        var svgDrawing = SVG('drawing').size(10, 10);
+
+        function toggleEdit() {
+            if (segmentEditor.enabled()) {
+                segmentEditor.disable();
+                
+                let edited_geo_json = diagramLayer.toGeoJSON();
+                loadOutputBuffer(edited_geo_json, true);
+            } else {
+                segmentEditor.enable();
+            }
+        }
+        /* Overwriting Leaflet.Draw's icon style */
+        L.Edit.PolyVerticesEdit.prototype.options.touchIcon = new L.DivIcon({
+            iconSize: new L.Point(10, 10),
+            className: 'leaflet-div-icon leaflet-editing-icon leaflet-touch-icon'
+        });
+
+        function miniMapstyleComp(feature) {
+            // console.log(feature.properties)
+            var curFeature = feature.geometry.type;
+            if (curFeature === 'LineString') {
+                // console.log(feature)
+                return {
+                    weight: 2,
+                    opacity: .9,
+                    color: feature.properties.color,
+                    dashArray: '',
+
+                };
+            } else {
+                // var fillColor = getColor(feature.properties.areatype);
+
+                if (feature.properties.areatype == 'project') {
+                    var fillColor = feature.properties.color;
+                } else { // it is policy
+                    var fillPattern = setSVGStyle(feature.properties.color);
+                    var fillColor = fillPattern;
+                }
+
+                return {
+                    // fillColor: feature.properties.color,
+                    // fillColor:'#333333',
+                    weight: 1,
+                    stroke: true,
+                    opacity: 0.9,
+                    fillColor: fillColor,
+                    color: feature.properties.color,
+                    dashArray: '',
+                    // opacity: 0.2,
+                    fillOpacity: 0.8,
+                };
+            }
+
+        }
+
+        function bindSysRadioChangeBtn() {
+            $('input[type=radio][name=sysCB]').change(function () {
+                var sysid = parseInt($('input[name=sysCB]:checked')[0].id);
+                for (var k = 0; k < systems.length; k++) {
+                    var cursys = systems[k];
+                    var cursyscolor = cursys.syscolor;
+                    if (cursys.id === sysid) {
+                        if (opGJ.features.length > 0) {
+                            opFG.setStyle({
+                                'color': cursyscolor,
+                                'fillColor': cursyscolor
+                            });
+                        }
+                        break;
+                    }
+                }
+            });
+        }
+
+        function setSVGStyle(reqColor) {
+            var pattern = svgDrawing.pattern(6, 6, function (add) {
+                // add.rect(5, 5).fill(reqColor)
+                add.line(0, 0, 6, 6).stroke({
+                    width: 1,
+                    color: reqColor
+                })
+                add.line(6, 0, 0, 6).stroke({
+                    width: 1,
+                    color: reqColor
+                })
+            });
+            return pattern.fill();
+        }
+
+        function getColor(type) {
+
+            return type === 'policy' ? '#707070 ' :
+                type === 'project' ? '#a69695 ' :
+                type === 'red2' ? '#bd0026' :
+                type === 'red' ? '#f03b20' :
+                type === 'yellow' ? '#FFFF00' :
+                type === 'green' ? '#74c476' :
+                type === 'green2' ? '#31a354' :
+                type === 'green3' ? '#006d2c' :
+                type === 'purple' ? '#CFACF7' :
+                type === 'purple2' ? '#8D6CBF' :
+                type === 'purple3' ? '#601286' :
+                type === 'orange' ? '#FFA927' :
+                type === 'orange2' ? '#F8872E' :
+                type === 'orange3' ? '#FC6B0A' :
+                type === 'constraints' ? '#343434' :
+                type === 'boundaries' ? '#a6cee3' :
+                type === 'boundaries2' ? '#b2df8a' :
+                '#808080';
+        }
+        $("#loadingGIF").hide();
+        var opGJ = {
+            "type": "FeatureCollection",
+            "features": []
+        };
+        var systems = <%- systems %>;
+        var diagramdetail = <%- diagramdetail %>;
+        var apitoken = "<%= apitoken  %>"; //var test is now assigned to getTest which will only work on browsers
+        var projectid = "<%= projectid %>";
+        if (diagramdetail !== 0) {
+
+            $("#diagName").html(diagramdetail['description']);
+            generateSystemCB(systems);
+            // bind system change addEvent
+            bindSysRadioChangeBtn();
+            var inputmap = L.map('inputmap', {
+                'touchZoom': false,
+                'scrollWheelZoom': false,
+                'doubleClickZoom': false
+            });
+            var inputbaseLayer = L.tileLayer(
+                'https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
+                    attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://cartodb.com/attributions">CartoDB</a>',
+                    maxZoom: 18,
+                }).addTo(inputmap);
+            var inputLayer = L.featureGroup().addTo(inputmap);
+
+            var diagramLayer = L.geoJSON(diagramdetail['geojson'], {
+                style: miniMapstyleComp
+            }).addTo(inputLayer);
+
+
+
+            var edit_options = {
+                segmentSize: 350,
+                style: {
+                    default: {
+                        weight: 3,
+                        color: 'tomato'
+                    },
+                    hover: {
+                        weight: 8,
+                        color: 'black'
+                    },
+                    editing: {
+                        weight: 2,
+                        color: 'gray'
+                    }
+                }
+            };
+            var poly = diagramLayer.getLayers()[0];
+            segmentEditor = new L.Edit.PolySegmentEditing(inputmap, poly, edit_options);
+            segmentEditor.enable();
+            inputmap.fitBounds(inputLayer.getBounds());
+
+            var outputmap = L.map('outputmap', {
+                'zoomControl': false,
+                'dragging': false,
+                'touchZoom': false,
+                'scrollWheelZoom': false,
+                'doubleClickZoom': false
+            });
+            var opFG = L.featureGroup().addTo(outputmap);
+            L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
+                attribution: '&copy; <a href="http://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors, &copy; <a href="https://cartodb.com/attributions">CartoDB</a>',
+                maxZoom: 18,
+            }).addTo(outputmap);
+
+        }
+
+        function generateSystemCB(systems) {
+            $('#systemsCB').append("<p><label>Choose destination System</label> ");
+            for (var x = 0; x < systems.length; x++) {
+                $('#systemsCB').append('<input name="sysCB" id=' + "'" + systems[x].id + "'" +
+                    'type="radio" /> <span class="square c-' + systems[x].syscolor.substring(1) +
+                    '"></span>&nbsp;&nbsp;' + systems[x].sysname + '</input>&nbsp;&nbsp;');
+            }
+            $('#systemsCB').append("</p>");
+        }
+
+        $('#computeBuffButton').on('click', function (e) {
+            computeBuffer();
+            $("#loadingGIF").show();
+        });
+        $('#addDiagram').on('click', function (e) {
+            addDiagram();
+        });
+
+        function addDiagram() {
+            var validated = false;
+            var projorpol = $('input:radio[name="projorpol"]:checked').val();
+            var targetsysid = false;
+            if ($('input:radio[name="sysCB"]:checked')[0]) {
+                targetsysid = $('input:radio[name="sysCB"]:checked')[0].id;
+            } else {
+                targetsysid = false;
+            }
+            var diagname = $("#newDiagName").val();
+            var opGeojson = opGJ;
+
+            if (projorpol && targetsysid && opGeojson.features.length > 0 && diagname) {
+                for (var l = 0; l < opGeojson.features.length; l++) {
+                    var curOpFeat = opGeojson.features[l];
+                    curOpFeat.properties = {};
+
+                }
+                validated = true;
+            }
+            if (validated) {
+                var data = {
+                    'projorpol': projorpol,
+                    'targetsysid': targetsysid,
+                    'diagname': diagname,
+                    'apitoken': apitoken,
+                    'projectid': projectid,
+                    'gj': JSON.stringify(opGeojson),
+                    '_csrf': '<%= csrfToken %>'
+                };
+                //your awesome code here
+                var url = '/adddiagram/';
+                var promise = $.ajax({
+                    url: url,
+                    type: 'POST',
+                    data: data
+                });
+                promise.done(function (data) {
+
+                    humane.log(data.body.status, {
+                        addnCls: 'humane-flatty-success'
+                    });
+                    $("#newDiagName").val("");
+                    $('input[name="sysCB"]').prop('checked', false);
+                    $('input[name="projorpol"]').prop('checked', false);
+                });
+
+                promise.fail(function (data) {
+                    humane.log("Error in adding diagram.", {
+                        addnCls: 'humane-flatty-error'
+                    });
+                });
+            } else {
+                humane.log("Please create a buffer, enter target system, project / policy and diagram name.", {
+                    addnCls: 'humane-flatty-error'
+                });
+            }
+        }
+
+        function loadOutputBuffer(outputGJ) {
+            opGJ = outputGJ;
+            opFG.clearLayers();
+            var diagramLayer = L.geoJSON(outputGJ, {
+                style: miniMapstyleComp
+            }).addTo(opFG);
+            outputmap.fitBounds(opFG.getBounds());
+        }
+    </script>
+</body>
+
+</html>
