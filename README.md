@@ -9,13 +9,12 @@ This plugin can be added to your project in the Administration panel
 ## Screenshots
 
 Edit the polygon
+![edit complex diagrams](img/../static/img/edit-GIS-based-diagrams.png)
 
-TBC
+Upload new diagram to Geodesignhub
 
-Exit edit mode
-
-TBC
+![upload complex diagram](img/../static/img/upload-gis-diagram.png)
 
 Upload the diagram in a different system
 
-TBC
+![upload to different system](img/../static/img/upload-to-upload-to-different-system.png)
