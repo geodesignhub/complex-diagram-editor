@@ -4,7 +4,7 @@
 <head>
     <meta charset="utf-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
-    <title>Geodesignhub Large Diagram Editor</title>
+    <title>Geodesignhub Complex Diagram Editor</title>
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <meta name="Description" lang="en" content="Geodesignhub Diagrams Builder">
     <meta name="author" content="Hrishikesh Ballal">
@@ -19,8 +19,9 @@
     <link rel="stylesheet" href="assets/css/ion.rangeSlider.skinFlat.css">
     <link rel="stylesheet" type="text/css" href="assets/css/flatty.css" />
     <link rel="stylesheet" type="text/css" href="assets/css/leaflet.css" />
-    <link href='https://fonts.googleapis.com/css?family=Open+Sans' rel='stylesheet' type='text/css'>
-    <link href='https://fonts.googleapis.com/css?family=Raleway' rel='stylesheet' type='text/css'>
+    
+    <link href='https://fonts.googleapis.com/css?family=Source+Serif+Pro' rel='stylesheet' type='text/css'>
+    <link href='https://fonts.googleapis.com/css?family=Source+Sans+Pro' rel='stylesheet' type='text/css'>
     <!-- Conditional comment containing JS files for IE6 - 8 -->
     <!--[if lt IE 9]>
             <script src="assets/js/html5.js"></script>
@@ -33,7 +34,7 @@
         <!-- Fixed navbar -->
         <nav class="navbar navbar-expand-md navbar-dark fixed-top bg-dark">
             <div class="container-fluid">
-                <a class="navbar-brand" href="#">Geodesignhub Large Diagram Editor</a>
+                <a class="navbar-brand" href="#">Geodesignhub Complex Diagram Editor</a>
             </div>
         </nav>
 
@@ -47,11 +48,13 @@
 
             <div class="col-md-6">
                 <h3>Input Diagram</h3>
+                <p class="text-muted">Instruction: Click a segment to edit it</p>
                 <div id="inputmap"></div>
                 <h4 id="diagName"> </h4>
             </div>
             <div class="col-md-6">
-                <h3>Output Diagram</h3>
+                <h3>Edited Diagram</h3>
+                <p class="text-muted">Preview diagram here before upload </p>
                 <div id="outputmap"></div>
             </div>
         </div>
@@ -59,8 +62,8 @@
         
         <div class="row">
             <div class="col-md-6">
-                <button id="toggle-btn" class="btn btn-primary" onclick="toggleEdit()">
-                    <span>Preview / Toggle</span>
+                <button id="toggle-btn" class="btn btn-secondary" onclick="toggleEdit()">
+                    Preview
                 </button>
                 
             </div>
@@ -72,21 +75,20 @@
         <div class="row">
             <div class="col-md-12">
                 <h3>Add edits as a new diagram</h3><br>
-                <div id="systemsCB"></div><br>
-                <label>Upload as Project or Policy</label>
+                <div id="systemsCB"><h5>Choose a destination system</h5></div><br>
+                <h5>Upload as Project or Policy</h5>
                 <p><label class="radio-inline"><input type="radio" name="projorpol" value="project"> Project</label>
                     <label class="radio-inline"><input type="radio" name="projorpol" value="policy"> Policy</label>
                 </p><br>
 
-                <label>Give the Diagram a name</label>
+                <h5>Give the Diagram a name</h5>
                 <ul class="input-list style-2 clearfix">
                     <li>
                         <input type="text" id="newDiagName" placeholder="e.g. smaller urban areas of URB 6">
                     </li>
                 </ul>
                 <br>
-                <button id="addDiagram" type="button" class="btn btn-success"><i
-                        class="glyphicon glyphicon-plus-sign"></i> Add as new Diagram </button>
+                <button id="addDiagram" type="button" class="btn btn-success">+ Add as new Diagram </button>
             </div>
         </div>
         <!-- /.col-md-4 -->
@@ -117,14 +119,25 @@
     <script type="text/javascript">
         var svgDrawing = SVG('drawing').size(10, 10);
 
+        let segment_editing_enbaled = false;
+        let all_segments = [];
         function toggleEdit() {
-            if (segmentEditor.enabled()) {
-                segmentEditor.disable();
-                
+            let segment_lengths = all_segments.length;
+            if (segment_editing_enbaled) {
+                let segment_lengths = all_segments.length;
+                for (var x = 0; x< segment_lengths; x++){
+                    all_segments[x].disable();
+                }
+                segment_editing_enbaled = false;
                 let edited_geo_json = diagramLayer.toGeoJSON();
                 loadOutputBuffer(edited_geo_json, true);
+                $("#toggle-btn").html('Edit diagram');
             } else {
-                segmentEditor.enable();
+                for (var x = 0; x< segment_lengths; x++){
+                    all_segments[x].enable();
+                }
+                segment_editing_enbaled = true;
+                $("#toggle-btn").html('Preview');
             }
         }
         /* Overwriting Leaflet.Draw's icon style */
@@ -263,11 +276,11 @@
                 segmentSize: 350,
                 style: {
                     default: {
-                        weight: 3,
+                        weight: 1,
                         color: 'tomato'
                     },
                     hover: {
-                        weight: 8,
+                        weight: 3,
                         color: 'black'
                     },
                     editing: {
@@ -276,9 +289,14 @@
                     }
                 }
             };
-            var poly = diagramLayer.getLayers()[0];
-            segmentEditor = new L.Edit.PolySegmentEditing(inputmap, poly, edit_options);
-            segmentEditor.enable();
+            diagramLayer.eachLayer(function(layer){
+                    let segmentEditor = new L.Edit.PolySegmentEditing(inputmap, layer, edit_options);
+                    segmentEditor.enable();
+                    all_segments.push(segmentEditor);
+                    segment_editing_enbaled = true;
+                });
+
+
             inputmap.fitBounds(inputLayer.getBounds());
 
             var outputmap = L.map('outputmap', {
@@ -297,7 +315,7 @@
         }
 
         function generateSystemCB(systems) {
-            $('#systemsCB').append("<p><label>Choose destination System</label> ");
+            $('#systemsCB').append("<p>");
             for (var x = 0; x < systems.length; x++) {
                 $('#systemsCB').append('<input name="sysCB" id=' + "'" + systems[x].id + "'" +
                     'type="radio" /> <span class="square c-' + systems[x].syscolor.substring(1) +
@@ -356,6 +374,7 @@
                     humane.log(data.body.status, {
                         addnCls: 'humane-flatty-success'
                     });
+                    opFG.clearLayers();
                     $("#newDiagName").val("");
                     $('input[name="sysCB"]').prop('checked', false);
                     $('input[name="projorpol"]').prop('checked', false);
@@ -367,7 +386,7 @@
                     });
                 });
             } else {
-                humane.log("Please create a buffer, enter target system, project / policy and diagram name.", {
+                humane.log("Please edit the diagram, enter target system, project / policy and diagram name.", {
                     addnCls: 'humane-flatty-error'
                 });
             }
