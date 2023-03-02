@@ -30,8 +30,7 @@ app.get('/', function(request, response) {
         var diagramdetailurl = baseurl + projectid + '/diagrams/' + diagramid + '/';
         var systemsurl = baseurl + projectid + '/systems/';
 
-        var URLS = [diagramdetailurl, systemsurl];
-        
+        var URLS = [diagramdetailurl, systemsurl];        
         async.map(URLS, function(url, done) {
             req({
                 url: url,
