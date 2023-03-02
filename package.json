@@ -28,6 +28,7 @@
         "request":"^2.88.2"
     },
     "engines": {
-        "npm": "8.x"
+        "npm": "8.x",
+        "node": "14.x"
       }
 }
