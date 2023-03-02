@@ -15,7 +15,7 @@
     <link rel="stylesheet" href="assets/css/bootstrap.min.css">
     <!-- Override CSS file - add your own CSS rules -->
     <link rel="stylesheet" href="assets/css/styles.css">
-    <link rel="stylesheet" href="assets/css/ion.rangeSlider.css">
+    <link rel="stylesheet" href="assets/css/ion.rangeSlider.min.css">
     <link rel="stylesheet" href="assets/css/ion.rangeSlider.skinFlat.css">
     <link rel="stylesheet" type="text/css" href="assets/css/flatty.css" />
     <link rel="stylesheet" type="text/css" href="assets/css/leaflet.css" />
@@ -48,7 +48,7 @@
 
             <div class="col-md-6">
                 <h3>Input Diagram</h3>
-                <p class="text-muted">Instruction: Click a segment to edit it</p>
+                <p class="text-muted">Instruction: Click on a, preview your edits before continuing</p>
                 <div id="inputmap"></div>
                 <h4 id="diagName"> </h4>
             </div>
@@ -63,7 +63,7 @@
         <div class="row">
             <div class="col-md-6">
                 <button id="toggle-btn" class="btn btn-secondary" onclick="toggleEdit()">
-                    Preview
+                    Preview your edits
                 </button>
                 
             </div>
@@ -257,7 +257,8 @@
             var inputmap = L.map('inputmap', {
                 'touchZoom': false,
                 'scrollWheelZoom': false,
-                'doubleClickZoom': false
+                'doubleClickZoom': false,
+                'attributionControl':false
             });
             var inputbaseLayer = L.tileLayer(
                 'https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
@@ -304,7 +305,8 @@
                 'dragging': false,
                 'touchZoom': false,
                 'scrollWheelZoom': false,
-                'doubleClickZoom': false
+                'doubleClickZoom': false,
+                'attributionControl': false,
             });
             var opFG = L.featureGroup().addTo(outputmap);
             L.tileLayer('https://cartodb-basemaps-{s}.global.ssl.fastly.net/light_all/{z}/{x}/{y}.png', {
