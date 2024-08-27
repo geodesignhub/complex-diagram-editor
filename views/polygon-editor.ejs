@@ -189,7 +189,7 @@
                 var sysid = parseInt($('input[name=sysCB]:checked')[0].id);
                 for (var k = 0; k < systems.length; k++) {
                     var cursys = systems[k];
-                    var cursyscolor = cursys.syscolor;
+                    var cursyscolor = cursys.color;
                     if (cursys.id === sysid) {
                         if (opGJ.features.length > 0) {
                             opFG.setStyle({
@@ -320,8 +320,8 @@
             $('#systemsCB').append("<p>");
             for (var x = 0; x < systems.length; x++) {
                 $('#systemsCB').append('<input name="sysCB" id=' + "'" + systems[x].id + "'" +
-                    'type="radio" /> <span class="square c-' + systems[x].syscolor.substring(1) +
-                    '"></span>&nbsp;&nbsp;' + systems[x].sysname + '</input>&nbsp;&nbsp;');
+                    'type="radio" /> <span class="square c-' + systems[x].color.substring(1) +
+                    '"></span>&nbsp;&nbsp;' + systems[x].name + '</input>&nbsp;&nbsp;');
             }
             $('#systemsCB').append("</p>");
         }
