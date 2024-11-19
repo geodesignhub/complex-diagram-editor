@@ -17,14 +17,14 @@
     "author": "Hrishikesh Ballal",
     "license": "MIT",
     "dependencies": {
-        "async": "^1.5.2",
-        "body-parser": "^1.15.1",
-        "cookie-parser": "^1.4.3",
-        "csurf": "^1.9.0",
-        "ejs": "^2.5.1",
-        "express": "^4.13.4",
-        "http-auth": "^3.1.1",
-        "jsonfile": "^2.4.0",
-        "request": "^2.72.0"
+        "async": "^3.2.6",
+        "body-parser": "^1.20.3",
+        "cookie-parser": "^1.4.7",
+        "csurf": "^1.11.0",
+        "ejs": "3.1.10",
+        "express": "^4.21.1",
+        "http-auth": "^4.2.0",
+        "jsonfile": "^6.1.0",
+        "request": "^2.88.2"
     }
 }
